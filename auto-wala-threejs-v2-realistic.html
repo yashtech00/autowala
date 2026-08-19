@@ -1,0 +1,1946 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Auto Wala — Indian Auto Ride Radio</title>
+  <meta name="description" content="Auto Wala — a moving Indian auto-rickshaw radio experience with horn sets and an Auto Wala playlist." />
+  <meta name="theme-color" content="#0e5b3d" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Noto+Sans+Devanagari:wght@500;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --green: #0d5c3d;
+      --green-2: #123e30;
+      --yellow: #ffd329;
+      --yellow-2: #f5a900;
+      --cream: #fff7d6;
+      --ink: #101b18;
+      --glass: rgba(14, 54, 43, .55);
+      --glass-2: rgba(0, 0, 0, .22);
+      --line: rgba(255,255,255,.24);
+      --text: #fffdf2;
+      --muted: rgba(255,255,255,.68);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100svh;
+      margin: 0;
+      background: #071018;
+      color: var(--text);
+      font-family: "Baloo 2", system-ui, sans-serif;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    body {
+      height: 100svh;
+      max-height: 100svh;
+      overflow: hidden;
+      background: #071018;
+    }
+
+    .grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .08;
+      mix-blend-mode: soft-light;
+      z-index: 2;
+      background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
+    }
+
+    .page {
+      position: relative;
+      height: 100svh;
+      max-height: 100svh;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      isolation: isolate;
+      overflow: hidden;
+      background: transparent;
+      z-index: 3;
+    }
+
+    .topbar {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 28px 0;
+      z-index: 10;
+    }
+
+    .clock {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      justify-self: start;
+    }
+
+    .presence {
+      justify-self: center;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .presence strong { color: white; font-size: 16px; font-weight: 700; }
+
+    .dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #4ee18b;
+      box-shadow: 0 0 0 5px rgba(78,225,139,.14), 0 0 18px rgba(78,225,139,.65);
+    }
+
+    .playlist-link {
+      justify-self: end;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,.3);
+      background: rgba(255,255,255,.08);
+      backdrop-filter: blur(16px);
+      border-radius: 999px;
+      padding: 8px 13px;
+      font-size: 13px;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 0;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .hero__title {
+      position: absolute;
+      top: 3.5%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      margin: 0;
+      text-align: center;
+      font-family: "Noto Sans Devanagari", sans-serif;
+      font-weight: 800;
+      font-size: clamp(48px, 7.4vw, 118px);
+      line-height: .9;
+      color: #fff8d8;
+      text-shadow: 0 4px 0 rgba(0,0,0,.08);
+      white-space: nowrap;
+    }
+
+    .hero__subtitle {
+      position: absolute;
+      top: calc(3.5% + clamp(52px, 7.4vw, 118px));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      margin: 15px 0 0;
+      color: rgba(255,255,255,.66);
+      font-size: clamp(12px, 1.3vw, 17px);
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    #scene {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .road-glow {
+      display: none;
+    }
+
+    .horn-panel {
+      position: absolute;
+      left: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 8;
+      width: 210px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      background: rgba(6, 30, 25, .42);
+      backdrop-filter: blur(16px);
+      border-radius: 22px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.18);
+    }
+
+    .horn-panel__title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 10px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .horn-panel__title span:first-child {
+      width: 29px;
+      height: 29px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--yellow);
+      color: var(--ink);
+    }
+
+    .horn-set {
+      display: grid;
+      gap: 8px;
+    }
+
+    .horn-btn {
+      width: 100%;
+      border: 0;
+      color: white;
+      cursor: pointer;
+      text-align: left;
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.09);
+      transition: transform .15s ease, background .15s ease;
+      font: inherit;
+    }
+
+    .horn-btn:hover { transform: translateX(3px); background: rgba(255,255,255,.12); }
+    .horn-btn strong { display: block; font-size: 14px; line-height: 1.1; }
+    .horn-btn small { color: var(--muted); font-size: 11px; }
+
+    .horn-btn.is-active {
+      color: #172218;
+      background: linear-gradient(135deg, var(--yellow), #ffeb7a);
+      border-color: transparent;
+    }
+
+    .horn-btn.is-active small { color: rgba(23, 34, 24, .62); }
+
+    .horn-main {
+      width: 100%;
+      margin-top: 10px;
+      border: 0;
+      border-radius: 15px;
+      padding: 12px 14px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #0f6a46, #0c4d36);
+      color: white;
+      font: inherit;
+      font-weight: 800;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.14);
+    }
+
+    .horn-main:active { transform: scale(.98); }
+
+    .speed-chip {
+      position: absolute;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 8;
+      width: 150px;
+      padding: 14px 16px;
+      border-radius: 22px;
+      background: rgba(6, 30, 25, .42);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+    }
+
+    .speed-chip .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .16em; }
+    .speed-chip .value { display: flex; align-items: baseline; gap: 5px; margin-top: 2px; }
+    .speed-chip .value strong { font-size: 34px; line-height: 1; }
+    .speed-chip .value span { color: var(--muted); font-size: 12px; }
+
+    .dock-wrap {
+      position: relative;
+      z-index: 10;
+      width: min(760px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 0 0 max(12px, env(safe-area-inset-bottom));
+    }
+
+    .bumper {
+      margin: 0 auto 8px;
+      text-align: center;
+      max-width: 720px;
+      font-family: "Noto Sans Devanagari", sans-serif;
+      color: #fff9db;
+      font-size: clamp(14px, 1.7vw, 20px);
+      line-height: 1.45;
+      text-shadow: 0 2px 12px rgba(0,0,0,.45);
+    }
+
+    .player {
+      display: grid;
+      grid-template-columns: auto minmax(0,1fr) auto;
+      align-items: center;
+      gap: 16px;
+      min-height: 86px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.28);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)),
+        rgba(13, 64, 47, .62);
+      backdrop-filter: blur(22px);
+      box-shadow: 0 18px 60px rgba(0,0,0,.24);
+    }
+
+    .cover {
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 50% 50%, #1c1c1c 0 12%, transparent 13%),
+        conic-gradient(from 0deg, #222, #444, #1a1a1a, #3d3d3d, #222);
+      border: 3px solid rgba(255,255,255,.8);
+      box-shadow: 0 5px 18px rgba(0,0,0,.28);
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .cover::after {
+      content: "AUTO";
+      position: absolute;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 8px;
+      font-weight: 800;
+      color: #1a241c;
+      background: var(--yellow);
+    }
+
+    .cover.is-playing { animation: spin 3s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .track-meta { min-width: 0; }
+
+    .track-title {
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      mask-image: linear-gradient(90deg, #000 78%, transparent);
+    }
+
+    .track-title span {
+      display: inline-block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: bottom;
+    }
+
+    .track-title.is-scrolling span {
+      max-width: none;
+      padding-right: 2.2em;
+      animation: title-scroll 11s linear infinite;
+    }
+
+    @keyframes title-scroll {
+      0%, 12% { transform: translateX(0); }
+      100% { transform: translateX(-55%); }
+    }
+
+    .track-artist {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .progress {
+      margin-top: 8px;
+      height: 3px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255,255,255,.16);
+      cursor: pointer;
+    }
+
+    .progress > span {
+      display: block;
+      width: 26%;
+      height: 100%;
+      background: var(--yellow);
+      border-radius: inherit;
+    }
+
+    .track-time {
+      margin-top: 3px;
+      color: rgba(255,255,255,.55);
+      font-size: 10px;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .control {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      border: 0;
+      color: white;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .control:hover { background: rgba(255,255,255,.1); }
+    .control.is-on { color: var(--yellow); }
+
+    .control.play {
+      width: 50px;
+      height: 50px;
+      color: var(--ink);
+      background: #fffaf0;
+      box-shadow: 0 6px 18px rgba(0,0,0,.25);
+    }
+
+    .control svg { width: 18px; height: 18px; fill: currentColor; }
+
+    #yt-host {
+      position: fixed;
+      width: 240px;
+      height: 135px;
+      left: 0;
+      bottom: 0;
+      overflow: hidden;
+      pointer-events: none;
+      opacity: 0.001;
+      z-index: -1;
+    }
+
+    .playlist-sheet {
+      position: fixed;
+      right: 22px;
+      bottom: max(96px, calc(env(safe-area-inset-bottom) + 86px));
+      z-index: 30;
+      width: min(390px, calc(100vw - 44px));
+      max-height: min(48vh, calc(100svh - 160px));
+      overflow: auto;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(7, 39, 31, .92);
+      backdrop-filter: blur(24px);
+      box-shadow: 0 28px 80px rgba(0,0,0,.35);
+      transform: translateY(12px) scale(.98);
+      opacity: 0;
+      pointer-events: none;
+      transition: .18s ease;
+    }
+
+    .playlist-sheet.is-open {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .playlist-sheet header {
+      position: sticky;
+      top: 0;
+      padding: 15px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(7,39,31,.95);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    .playlist-sheet h2 { margin: 0; font-size: 16px; }
+    .playlist-sheet h2 small { display: block; color: var(--muted); font-size: 11px; font-weight: 600; margin-top: 2px; }
+
+    .tracks { list-style: none; margin: 0; padding: 6px; }
+
+    .track-row {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 0;
+      border-radius: 14px;
+      background: transparent;
+      color: white;
+      text-align: left;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .track-row:hover { background: rgba(255,255,255,.07); }
+    .track-row.is-current { background: rgba(255,211,41,.12); }
+
+    .track-number {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(255,255,255,.08);
+      color: var(--yellow);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .track-row strong { display: block; font-size: 13px; }
+    .track-row small { display: block; color: var(--muted); font-size: 11px; }
+    .track-row time { color: var(--muted); font-size: 10px; }
+
+    .mobile-horn { display: none; }
+
+    @media (max-width: 850px) {
+      .topbar { padding: 10px 16px 0; }
+      .playlist-link span { display: none; }
+      .horn-panel, .speed-chip { display: none; }
+      .hero { min-height: 0; }
+      .hero__title { top: 6%; font-size: clamp(40px, 12vw, 84px); }
+      .hero__subtitle { top: calc(6% + clamp(44px, 12vw, 84px)); }
+      .dock-wrap { margin-top: 0; }
+      .mobile-horn {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin: 0 auto 8px;
+      }
+      .mobile-horn button {
+        border: 1px solid rgba(255,255,255,.22);
+        border-radius: 999px;
+        background: rgba(0,0,0,.18);
+        color: white;
+        padding: 8px 11px;
+        font: inherit;
+        font-size: 12px;
+      }
+    }
+
+    @media (max-width: 610px) {
+      .topbar {
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+          "clock link"
+          "presence presence";
+        gap: 8px;
+      }
+      .clock { grid-area: clock; }
+      .presence { grid-area: presence; justify-self: start; }
+      .playlist-link { grid-area: link; }
+      .hero { min-height: 0; }
+      .player {
+        border-radius: 24px;
+        grid-template-columns: auto minmax(0,1fr);
+        gap: 12px;
+        padding: 11px;
+        min-height: 0;
+      }
+      .controls {
+        grid-column: 1 / -1;
+        justify-content: center;
+      }
+      .cover { width: 58px; height: 58px; }
+      .bumper { padding: 0 12px; font-size: 15px; }
+    }
+
+    @media (max-height: 780px) {
+      .topbar { padding-top: 8px; gap: 10px; }
+      .horn-panel, .speed-chip { transform: translateY(-50%) scale(.86); transform-origin: center; }
+      .player { min-height: 72px; padding: 8px 12px; }
+      .cover { width: 52px; height: 52px; }
+      .control.play { width: 44px; height: 44px; }
+      .bumper { margin-bottom: 6px; }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="scene" aria-label="Animated yellow and green Indian auto-rickshaw driving on a road"></canvas>
+  <div class="grain"></div>
+
+  <div class="page">
+    <header class="topbar">
+      <div class="clock" id="clock">7:20 pm</div>
+
+      <div class="presence" aria-live="polite">
+        <span class="dot"></span>
+        <strong id="listeners">709</strong>
+        <span>on the road</span>
+      </div>
+
+      <a class="playlist-link" href="#" id="playlistLink" aria-label="Open Auto Wala playlist">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+          <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-2.2 6.2l6.4 3.8-6.4 3.8V8.2z"/>
+        </svg>
+        <span>90s Bollywood Dance</span>
+      </a>
+    </header>
+
+    <main class="hero">
+      <h1 class="hero__title" lang="hi">ऑटो वाला</h1>
+      <p class="hero__subtitle">meter down · music up</p>
+
+      <aside class="horn-panel" aria-label="Horn">
+        <p class="horn-panel__title">
+          <span>📣</span>
+          <span>Horn</span>
+        </p>
+
+        <div class="horn-set">
+          <button class="horn-btn is-active" id="hornClip" type="button">
+            <strong>Jaldi Waha Se Hato</strong>
+            <small>the only horn that matters</small>
+          </button>
+        </div>
+
+        <button class="horn-main" id="hornMain" type="button">HORN OK PLEASEEEE</button>
+      </aside>
+
+      <aside class="speed-chip" aria-label="Auto speed">
+        <div class="label">Auto speed</div>
+        <div class="value"><strong id="speed">38</strong><span>km/h</span></div>
+      </aside>
+    </main>
+
+    <section class="dock-wrap">
+      <div class="mobile-horn">
+        <button id="hornMobile" type="button">📣 Jaldi Hato</button>
+      </div>
+
+      <p class="bumper" id="bumperText" lang="hi">मीटर से चलेंगे, दिल से सुनेंगे।</p>
+
+      <div class="player">
+        <div class="cover" id="cover"></div>
+
+        <div class="track-meta">
+          <div class="track-title" id="trackTitle"><span id="trackTitleText">90s Bollywood Dance</span></div>
+          <div class="track-artist" id="trackArtist">Press play — songs keep changing on their own</div>
+          <div class="progress" id="progress"><span id="progressFill"></span></div>
+          <div class="track-time"><span id="currentTime">0:00</span> / <span id="duration">0:00</span></div>
+        </div>
+
+        <div class="controls">
+          <button class="control" id="shuffle" aria-label="Shuffle">
+            <svg viewBox="0 0 24 24"><path d="M17 3l4 4-4 4V8h-2.2l-2.3 3.1 2.3 3.1H17V11l4 4-4 4v-3h-3.2l-2.6-3.5L8.6 15H3v-2h4.6l2.6-3.5L12.8 6H17V3zM3 9h3.4l1.5 2H3V9z"/></svg>
+          </button>
+
+          <button class="control" id="prev" aria-label="Previous">
+            <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+          </button>
+
+          <button class="control play" id="play" aria-label="Play">
+            <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+
+          <button class="control" id="next" aria-label="Next">
+            <svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zm-2 6L5.5 6v12z"/></svg>
+          </button>
+
+          <button class="control" id="listBtn" aria-label="Playlist">
+            <svg viewBox="0 0 24 24"><path d="M3 6h13v2H3zm0 5h13v2H3zm0 5h9v2H3zm15-6.5l4 3-4 3z"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <aside class="playlist-sheet" id="playlistSheet">
+    <header>
+      <h2>🛺 90s Bollywood Dance <small>Auto Wala radio · songs keep rolling</small></h2>
+      <button class="control" id="closeList" aria-label="Close playlist">✕</button>
+    </header>
+    <ol class="tracks" id="tracks"></ol>
+  </aside>
+
+  <div id="yt-host" aria-hidden="true"><div id="yt-player"></div></div>
+
+  <script>
+    /* -----------------------------------------------------------
+       AUTO WALA RADIO — 90s Bollywood Dance playlist
+       https://music.youtube.com/playlist?list=RDCLAK5uy_kiDNaS5nAXxdzsqFElFKKKs0GUEFJE26w
+       ----------------------------------------------------------- */
+    const YT_PLAYLIST_ID = "RDCLAK5uy_kiDNaS5nAXxdzsqFElFKKKs0GUEFJE26w";
+    const PLAYLIST_NAME = "90s Bollywood Dance";
+
+    const BUMPER_LINES = [
+      "मीटर से चलेंगे, दिल से सुनेंगे।",
+      "हॉर्न कम, गाने ज़्यादा।",
+      "जगह छोटी है, दिल बड़ा है।",
+      "ऑटो हमारा, मूड तुम्हारा।",
+      "भाई थोड़ा आगे बैठ जाना।",
+      "ट्रैफिक अपना काम करेगा, हम अपना गाना सुनेंगे।",
+      "किराया बाद में, प्लेलिस्ट पहले।"
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    const play = $("play");
+    const playIcon = $("playIcon");
+    const cover = $("cover");
+    const titleWrap = $("trackTitle");
+    const titleText = $("trackTitleText");
+    const artist = $("trackArtist");
+    const currentTimeEl = $("currentTime");
+    const durationEl = $("duration");
+    const progressFill = $("progressFill");
+    const progress = $("progress");
+    const playlistSheet = $("playlistSheet");
+    const tracksEl = $("tracks");
+    const shuffleBtn = $("shuffle");
+
+    let yt = null;
+    let ytReady = false;
+    let playing = false;
+    let shuffled = true;
+    let currentTrack = 0;
+    let playlistIds = [];
+    const titleCache = Object.create(null);
+    let bumperIndex = 0;
+
+    function fmt(sec) {
+      if (!Number.isFinite(sec) || sec < 0) sec = 0;
+      const m = Math.floor(sec / 60);
+      const s = String(Math.floor(sec % 60)).padStart(2, "0");
+      return `${m}:${s}`;
+    }
+
+    function prettyTrack(data) {
+      const raw = (data && data.title) || PLAYLIST_NAME;
+      const author = ((data && data.author) || "YouTube Music").replace(/\s*-\s*Topic$/i, "").trim();
+      const title = raw
+        .split(/\s*[|•·]\s*/)[0]
+        .replace(/\s*\((official|lyrics?|video|audio|visualiser|visualizer).*?\)/ig, "")
+        .replace(/\s*\[(official|lyrics?|hd|4k).*?\]/ig, "")
+        .replace(/\s+(official\s+)?(music\s+video|lyric video|hd|4k)$/i, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+      return { title: title || raw, artist: author };
+    }
+
+    function setTitle(name) {
+      titleText.textContent = name;
+      titleWrap.classList.remove("is-scrolling");
+      requestAnimationFrame(() => {
+        const overflow = titleText.scrollWidth > titleWrap.clientWidth + 8;
+        if (overflow) {
+          titleText.textContent = name + "     ·     " + name;
+          titleWrap.classList.add("is-scrolling");
+        }
+      });
+    }
+
+    function updateNowPlaying() {
+      if (!yt) return;
+      const data = yt.getVideoData?.() || {};
+      const pretty = prettyTrack(data);
+      const id = data.video_id;
+      if (id) titleCache[id] = pretty;
+      setTitle(pretty.title);
+      artist.textContent = pretty.artist ? `${pretty.artist} · ${PLAYLIST_NAME}` : PLAYLIST_NAME;
+      renderTracks();
+    }
+
+    function syncPlaylist() {
+      if (!yt) return;
+      const ids = yt.getPlaylist?.();
+      if (Array.isArray(ids) && ids.length) playlistIds = ids;
+      const idx = yt.getPlaylistIndex?.();
+      if (Number.isInteger(idx) && idx >= 0) currentTrack = idx;
+      renderTracks();
+    }
+
+    function renderTracks() {
+      tracksEl.innerHTML = "";
+      const ids = playlistIds.length ? playlistIds : [];
+      if (!ids.length) {
+        const li = document.createElement("li");
+        li.innerHTML = `<button class="track-row" type="button"><span class="track-number">♪</span><span><strong>${PLAYLIST_NAME}</strong><small>Press play to start the ride</small></span></button>`;
+        tracksEl.appendChild(li);
+        return;
+      }
+      ids.forEach((id, pos) => {
+        const cached = titleCache[id];
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "track-row" + (pos === currentTrack ? " is-current" : "");
+        btn.innerHTML = `
+          <span class="track-number">${String(pos + 1).padStart(2, "0")}</span>
+          <span><strong>${cached ? cached.title : "Track " + String(pos + 1).padStart(2, "0")}</strong><small>${cached ? cached.artist : PLAYLIST_NAME}</small></span>
+        `;
+        btn.addEventListener("click", () => {
+          if (!ytReady) return;
+          yt.playVideoAt(pos);
+          playlistSheet.classList.remove("is-open");
+        });
+        li.appendChild(btn);
+        tracksEl.appendChild(li);
+      });
+    }
+
+    function armPlaylist(autoPlay) {
+      if (!yt) return;
+      yt.setLoop?.(true);
+      yt.setShuffle?.(shuffled);
+      if (autoPlay) {
+        const count = (yt.getPlaylist?.() || playlistIds).length;
+        const start = count > 1 ? Math.floor(Math.random() * count) : 0;
+        if (count) yt.playVideoAt(start);
+        else yt.playVideo();
+      }
+      syncPlaylist();
+      updateNowPlaying();
+    }
+
+    $("next").addEventListener("click", () => { if (ytReady) yt.nextVideo(); });
+    $("prev").addEventListener("click", () => { if (ytReady) yt.previousVideo(); });
+
+    shuffleBtn.addEventListener("click", () => {
+      shuffled = !shuffled;
+      shuffleBtn.classList.toggle("is-on", shuffled);
+      if (ytReady) yt.setShuffle(shuffled);
+    });
+    shuffleBtn.classList.toggle("is-on", shuffled);
+
+    function toggleList(open) {
+      playlistSheet.classList.toggle("is-open", open ?? !playlistSheet.classList.contains("is-open"));
+      if (playlistSheet.classList.contains("is-open")) syncPlaylist();
+    }
+
+    $("listBtn").addEventListener("click", () => toggleList());
+    $("closeList").addEventListener("click", () => toggleList(false));
+    $("playlistLink").addEventListener("click", (e) => {
+      e.preventDefault();
+      toggleList(true);
+    });
+
+    play.addEventListener("click", () => {
+      if (!ytReady) {
+        artist.textContent = "Radio is warming up… tap play again in a second";
+        return;
+      }
+      if (playing) {
+        yt.pauseVideo();
+        return;
+      }
+      const ids = yt.getPlaylist?.() || playlistIds;
+      if (ids && ids.length && (yt.getPlayerState?.() === YT.PlayerState.UNSTARTED || yt.getPlayerState?.() === YT.PlayerState.CUED)) {
+        armPlaylist(true);
+      } else {
+        yt.playVideo();
+      }
+    });
+
+    function setPlaying(on) {
+      playing = on;
+      cover.classList.toggle("is-playing", on);
+      play.setAttribute("aria-label", on ? "Pause" : "Play");
+      playIcon.innerHTML = on
+        ? '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>'
+        : '<path d="M8 5v14l11-7z"/>';
+    }
+
+    window.onYouTubeIframeAPIReady = () => {
+      yt = new YT.Player("yt-player", {
+        height: "135",
+        width: "240",
+        playerVars: {
+          listType: "playlist",
+          list: YT_PLAYLIST_ID,
+          playsinline: 1,
+          controls: 0,
+          rel: 0,
+          modestbranding: 1,
+          disablekb: 1,
+          enablejsapi: 1
+        },
+        events: {
+          onReady: (e) => {
+            ytReady = true;
+            e.target.cuePlaylist({ listType: "playlist", list: YT_PLAYLIST_ID, index: 0 });
+            artist.textContent = "Press play — 90s Bollywood Dance starts the ride";
+          },
+          onStateChange: (e) => {
+            if (e.data === YT.PlayerState.CUED) {
+              shuffled = true;
+              shuffleBtn.classList.add("is-on");
+              e.target.setLoop(true);
+              e.target.setShuffle(true);
+              syncPlaylist();
+              updateNowPlaying();
+            }
+            if (e.data === YT.PlayerState.PLAYING) {
+              setPlaying(true);
+              updateNowPlaying();
+              syncPlaylist();
+            }
+            if (e.data === YT.PlayerState.PAUSED) setPlaying(false);
+            if (e.data === YT.PlayerState.BUFFERING) updateNowPlaying();
+            if (e.data === YT.PlayerState.ENDED) {
+              e.target.nextVideo();
+            }
+          },
+          onError: () => {
+            try { yt.nextVideo(); } catch (_) {}
+          }
+        }
+      });
+    };
+
+    const ytScript = document.createElement("script");
+    ytScript.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(ytScript);
+
+    setInterval(() => {
+      if (!ytReady || !yt) return;
+      const cur = yt.getCurrentTime?.() || 0;
+      const dur = yt.getDuration?.() || 0;
+      currentTimeEl.textContent = fmt(cur);
+      durationEl.textContent = fmt(dur);
+      progressFill.style.width = dur ? `${Math.min(100, (cur / dur) * 100)}%` : "0%";
+    }, 300);
+
+    progress.addEventListener("click", (e) => {
+      if (!ytReady || !yt) return;
+      const dur = yt.getDuration?.() || 0;
+      if (!dur) return;
+      const r = progress.getBoundingClientRect();
+      const pct = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+      yt.seekTo(dur * pct, true);
+    });
+
+    renderTracks();
+
+    /* Clock */
+    function tickClock() {
+      $("clock").textContent = new Date()
+        .toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true })
+        .toLowerCase();
+    }
+    tickClock();
+    setInterval(tickClock, 15000);
+
+    /* Decorative road presence counter */
+    let listenerCount = 650 + Math.floor(Math.random() * 90);
+    function driftListeners() {
+      listenerCount = Math.max(500, Math.min(800, listenerCount + (Math.random() > .48 ? 1 : -1) * (1 + Math.floor(Math.random() * 3))));
+      $("listeners").textContent = listenerCount;
+      setTimeout(driftListeners, 2500 + Math.random() * 2500);
+    }
+    $("listeners").textContent = listenerCount;
+    driftListeners();
+
+    /* Bumper line rotation */
+    setInterval(() => {
+      bumperIndex = (bumperIndex + 1) % BUMPER_LINES.length;
+      $("bumperText").animate(
+        [{ opacity: 1, transform: "translateY(0)" }, { opacity: 0, transform: "translateY(-5px)" }],
+        { duration: 180, fill: "forwards" }
+      ).finished.then(() => {
+        $("bumperText").textContent = BUMPER_LINES[bumperIndex];
+        $("bumperText").animate(
+          [{ opacity: 0, transform: "translateY(5px)" }, { opacity: 1, transform: "translateY(0)" }],
+          { duration: 220, fill: "forwards" }
+        );
+      });
+    }, 7000);
+
+    /* -----------------------------------------------------------
+       HORN — Jaldi Waha Se Hato
+       ----------------------------------------------------------- */
+    const hornAudio = new Audio("jaldi-waha-se-hato.mp3");
+    hornAudio.preload = "auto";
+
+    function soundHorn() {
+      try {
+        hornAudio.pause();
+        hornAudio.currentTime = 0;
+        const play = hornAudio.play();
+        if (play && typeof play.catch === "function") play.catch(() => {});
+      } catch (_) {}
+      window.dispatchEvent(new CustomEvent("auto-honk"));
+    }
+
+    $("hornClip").addEventListener("click", soundHorn);
+    $("hornMain").addEventListener("click", soundHorn);
+    $("hornMobile").addEventListener("click", soundHorn);
+  </script>
+
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js";
+
+    const canvas = document.getElementById("scene");
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: false,
+      powerPreference: "high-performance"
+    });
+    renderer.setClearColor(0x12283a, 1);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x153f39, 0.01);
+
+    const camera = new THREE.PerspectiveCamera(38, 1, .1, 260);
+    camera.position.set(0, 4.35, 13.25);
+    camera.lookAt(0, 1.95, 0);
+
+    const hemi = new THREE.HemisphereLight(0xfff1be, 0x0a201b, 2.4);
+    scene.add(hemi);
+
+    const key = new THREE.DirectionalLight(0xffd97b, 4.8);
+    key.position.set(-6, 9, 5);
+    key.castShadow = true;
+    key.shadow.mapSize.set(1024, 1024);
+    key.target.position.set(0, 1.4, 0);
+    scene.add(key, key.target);
+
+    const moonLight = new THREE.DirectionalLight(0xc5d4ff, 0);
+    moonLight.target.position.set(0, 1.4, 0);
+    scene.add(moonLight, moonLight.target);
+
+    const rim = new THREE.PointLight(0xff5533, 28, 22, 2);
+    rim.position.set(6, 2.2, -4);
+    scene.add(rim);
+
+    /* -----------------------------------------------------------
+       DAY / NIGHT CYCLE
+       Sun rises on the right, arcs through the sky, sets on the left.
+       Moon follows the same path after sunset, with real phases.
+       ----------------------------------------------------------- */
+    const DAY_SECONDS = 90;
+    const CYCLE_START = 0.93;
+
+    function canvasTex(draw, size = 512) {
+      const c = document.createElement("canvas");
+      c.width = c.height = size;
+      draw(c.getContext("2d"), size);
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.needsUpdate = true;
+      return tex;
+    }
+
+    function radialSprite(stops, scale, additive = true) {
+      const map = canvasTex((ctx, s) => {
+        const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+        stops.forEach(([t, color]) => g.addColorStop(t, color));
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, s, s);
+      });
+      const mat = new THREE.SpriteMaterial({
+        map,
+        transparent: true,
+        depthWrite: false,
+        depthTest: false,
+        fog: false,
+        toneMapped: false,
+        blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending
+      });
+      const sprite = new THREE.Sprite(mat);
+      sprite.scale.set(scale, scale, 1);
+      sprite.renderOrder = -1;
+      return sprite;
+    }
+
+    const skyMat = new THREE.ShaderMaterial({
+      side: THREE.BackSide,
+      depthWrite: false,
+      fog: false,
+      toneMapped: false,
+      uniforms: {
+        topColor: { value: new THREE.Color(0x153f39) },
+        midColor: { value: new THREE.Color(0x3d7ea8) },
+        horizonColor: { value: new THREE.Color(0x1b4d48) },
+        groundColor: { value: new THREE.Color(0x24150f) },
+        sunDir: { value: new THREE.Vector3(1, 0.2, -0.4) },
+        moonDir: { value: new THREE.Vector3(-1, 0.2, -0.4) },
+        sunGlow: { value: 0 },
+        moonGlow: { value: 0 },
+        night: { value: 1 }
+      },
+      vertexShader: `
+        varying vec3 vDir;
+        void main() {
+          vDir = normalize(position);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vDir;
+        uniform vec3 topColor;
+        uniform vec3 midColor;
+        uniform vec3 horizonColor;
+        uniform vec3 groundColor;
+        uniform vec3 sunDir;
+        uniform vec3 moonDir;
+        uniform float sunGlow;
+        uniform float moonGlow;
+        uniform float night;
+        void main() {
+          vec3 dir = normalize(vDir);
+          float h = dir.y;
+          vec3 col = mix(horizonColor, midColor, smoothstep(-0.04, 0.22, h));
+          col = mix(col, topColor, smoothstep(0.10, 0.82, h));
+          col = mix(groundColor, col, smoothstep(-0.24, 0.03, h));
+
+          vec3 sDir = normalize(sunDir);
+          float sunDot = max(dot(dir, sDir), 0.0);
+          float horizonWarm = smoothstep(0.35, 0.0, abs(sDir.y)) * sunGlow;
+          col += vec3(1.0, 0.55, 0.22) * pow(sunDot, 8.0) * sunGlow * 0.28;
+          col += vec3(1.0, 0.78, 0.42) * pow(sunDot, 28.0) * sunGlow * 0.45;
+          col += vec3(1.0, 0.95, 0.82) * pow(sunDot, 220.0) * sunGlow * 0.85;
+          col += vec3(1.0, 0.45, 0.18) * horizonWarm * smoothstep(0.18, -0.02, h) * 0.35;
+
+          float moonDot = max(dot(dir, normalize(moonDir)), 0.0);
+          col += vec3(0.55, 0.64, 0.92) * pow(moonDot, 18.0) * moonGlow * 0.18;
+          col += vec3(0.82, 0.88, 1.0) * pow(moonDot, 90.0) * moonGlow * 0.12;
+
+          gl_FragColor = vec4(col, 1.0);
+        }
+      `
+    });
+    const sky = new THREE.Mesh(new THREE.SphereGeometry(110, 48, 32), skyMat);
+    sky.frustumCulled = false;
+    sky.renderOrder = -8;
+    scene.add(sky);
+
+    const sun = new THREE.Group();
+    const sunBloom = radialSprite([
+      [0, "rgba(255, 250, 230, 0.95)"],
+      [0.08, "rgba(255, 210, 120, 0.55)"],
+      [0.22, "rgba(255, 140, 50, 0.18)"],
+      [0.55, "rgba(255, 90, 30, 0.05)"],
+      [1, "rgba(0, 0, 0, 0)"]
+    ], 16);
+    const sunCorona = radialSprite([
+      [0, "rgba(255, 255, 245, 1)"],
+      [0.12, "rgba(255, 236, 170, 0.7)"],
+      [0.32, "rgba(255, 170, 70, 0.22)"],
+      [1, "rgba(0, 0, 0, 0)"]
+    ], 7.4);
+    const sunDisc = radialSprite([
+      [0, "rgba(255, 255, 255, 1)"],
+      [0.42, "rgba(255, 248, 220, 1)"],
+      [0.62, "rgba(255, 210, 110, 0.95)"],
+      [0.78, "rgba(255, 160, 60, 0.35)"],
+      [1, "rgba(255, 140, 40, 0)"]
+    ], 2.35, false);
+    sunDisc.material.blending = THREE.AdditiveBlending;
+    sun.add(sunBloom, sunCorona, sunDisc);
+    sun.userData = { bloom: sunBloom, corona: sunCorona, disc: sunDisc };
+    sun.renderOrder = -2;
+    scene.add(sun);
+
+    const moonMap = canvasTex((ctx, s) => {
+      const img = ctx.createImageData(s, s);
+      for (let y = 0; y < s; y++) {
+        for (let x = 0; x < s; x++) {
+          const u = x / s;
+          const v = y / s;
+          let n = 0.78
+            + Math.sin(u * 17.2 + v * 9.1) * 0.045
+            + Math.sin(u * 43.0 + v * 27.4) * 0.03
+            + Math.sin(u * 91.0 + v * 71.0) * 0.018;
+          const m1 = (u - 0.36) ** 2 + (v - 0.40) ** 2;
+          const m2 = (u - 0.64) ** 2 + (v - 0.58) ** 2;
+          const m3 = (u - 0.48) ** 2 + (v - 0.72) ** 2;
+          if (m1 < 0.055) n *= 0.72;
+          if (m2 < 0.032) n *= 0.76;
+          if (m3 < 0.018) n *= 0.80;
+          const i = (y * s + x) * 4;
+          img.data[i] = n * 236;
+          img.data[i + 1] = n * 232;
+          img.data[i + 2] = n * 220;
+          img.data[i + 3] = 255;
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+      ctx.globalCompositeOperation = "multiply";
+      for (let i = 0; i < 56; i++) {
+        const x = Math.random() * s;
+        const y = Math.random() * s;
+        const r = 5 + Math.random() * 26;
+        const g = ctx.createRadialGradient(x - r * 0.22, y - r * 0.2, r * 0.08, x, y, r);
+        g.addColorStop(0, "rgba(255,255,252,0.42)");
+        g.addColorStop(0.42, "rgba(190,188,180,0.16)");
+        g.addColorStop(0.68, "rgba(70,68,64,0.38)");
+        g.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+    moonMap.wrapS = moonMap.wrapT = THREE.ClampToEdgeWrapping;
+
+    const moon = new THREE.Group();
+    const moonHalo = radialSprite([
+      [0, "rgba(210, 220, 255, 0.35)"],
+      [0.22, "rgba(160, 180, 230, 0.12)"],
+      [0.55, "rgba(120, 140, 200, 0.04)"],
+      [1, "rgba(0, 0, 0, 0)"]
+    ], 6.4);
+    const moonMat = new THREE.ShaderMaterial({
+      fog: false,
+      toneMapped: false,
+      uniforms: {
+        map: { value: moonMap },
+        sunDir: { value: new THREE.Vector3(1, 0.3, 0.2) }
+      },
+      vertexShader: `
+        varying vec3 vWorldNormal;
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          vWorldNormal = normalize(mat3(modelMatrix) * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D map;
+        uniform vec3 sunDir;
+        varying vec3 vWorldNormal;
+        varying vec2 vUv;
+        void main() {
+          vec3 n = normalize(vWorldNormal);
+          vec3 albedo = texture2D(map, vUv).rgb;
+          float ndl = dot(n, normalize(sunDir));
+          float light = smoothstep(-0.08, 0.22, ndl);
+          float earthshine = 0.055;
+          vec3 col = albedo * (earthshine + light * 1.05);
+          float limb = pow(1.0 - abs(ndl), 6.0) * 0.08;
+          col += vec3(0.75, 0.8, 0.95) * limb * light;
+          gl_FragColor = vec4(col, 1.0);
+        }
+      `
+    });
+    const moonBody = new THREE.Mesh(new THREE.SphereGeometry(1.65, 48, 48), moonMat);
+    moonBody.renderOrder = -1;
+    moon.add(moonHalo, moonBody);
+    moon.userData = { halo: moonHalo, body: moonBody, mat: moonMat };
+    scene.add(moon);
+
+    const starCount = 320;
+    const starPositions = new Float32Array(starCount * 3);
+    const starColors = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.random() * Math.PI * 0.46;
+      const r = 70;
+      starPositions[i * 3] = Math.sin(phi) * Math.cos(theta) * r;
+      starPositions[i * 3 + 1] = 4 + Math.cos(phi) * r * 0.58;
+      starPositions[i * 3 + 2] = Math.sin(phi) * Math.sin(theta) * r - 12;
+      const warm = Math.random();
+      starColors[i * 3] = 0.85 + warm * 0.15;
+      starColors[i * 3 + 1] = 0.88 + (1 - warm) * 0.08;
+      starColors[i * 3 + 2] = warm > 0.7 ? 0.75 : 1;
+    }
+    const starGeo = new THREE.BufferGeometry();
+    starGeo.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
+    starGeo.setAttribute("color", new THREE.BufferAttribute(starColors, 3));
+    const stars = new THREE.Points(
+      starGeo,
+      new THREE.PointsMaterial({
+        vertexColors: true,
+        size: 0.22,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        fog: false,
+        toneMapped: false,
+        blending: THREE.AdditiveBlending
+      })
+    );
+    stars.renderOrder = -6;
+    scene.add(stars);
+
+    const SKY_STOPS = [
+      { p: 0.00, top: 0x1c2c6a, mid: 0xee7a48, horizon: 0xff8a42, ground: 0x4a2316, fog: 0xff8a52, hemiSky: 0xffc4a0, hemiGnd: 0x3a2214, key: 0xffb078, keyI: 3.4, moonI: 0, hemiI: 1.7, rim: 18, night: 0.08 },
+      { p: 0.08, top: 0x3d9ee4, mid: 0x8ec8f0, horizon: 0xffd7a0, ground: 0x6d7a42, fog: 0xd7e6f0, hemiSky: 0xfff0cc, hemiGnd: 0x4a5a32, key: 0xffe4b0, keyI: 5.6, moonI: 0, hemiI: 2.5, rim: 10, night: 0 },
+      { p: 0.22, top: 0x4eb4f2, mid: 0x9fd4f8, horizon: 0xd8f0ff, ground: 0x7a9a4e, fog: 0xc5e4f4, hemiSky: 0xf7ffd8, hemiGnd: 0x556b38, key: 0xfff3c8, keyI: 6.4, moonI: 0, hemiI: 2.8, rim: 6, night: 0 },
+      { p: 0.38, top: 0x2f7ec8, mid: 0xf0b878, horizon: 0xf3c48a, ground: 0x6a6238, fog: 0xe0c496, hemiSky: 0xffe2b4, hemiGnd: 0x4a4024, key: 0xffc878, keyI: 4.8, moonI: 0, hemiI: 2.1, rim: 16, night: 0.05 },
+      { p: 0.48, top: 0x241e58, mid: 0xff7040, horizon: 0xff6a32, ground: 0x4a1c12, fog: 0xe86838, hemiSky: 0xffa878, hemiGnd: 0x2a120c, key: 0xff8844, keyI: 2.6, moonI: 0.15, hemiI: 1.3, rim: 34, night: 0.35 },
+      { p: 0.54, top: 0x0c142c, mid: 0x243050, horizon: 0x3a2a58, ground: 0x1a1210, fog: 0x1c2438, hemiSky: 0x8aa0d8, hemiGnd: 0x0c1412, key: 0x8899cc, keyI: 0.15, moonI: 1.35, hemiI: 0.9, rim: 10, night: 0.85 },
+      { p: 0.70, top: 0x050a16, mid: 0x101c30, horizon: 0x14283a, ground: 0x0e1614, fog: 0x102028, hemiSky: 0x7c90c8, hemiGnd: 0x081210, key: 0x99aadd, keyI: 0.05, moonI: 1.7, hemiI: 0.75, rim: 6, night: 1 },
+      { p: 0.88, top: 0x0a1228, mid: 0x2a2448, horizon: 0x3a3060, ground: 0x18120e, fog: 0x1a2238, hemiSky: 0xa088c0, hemiGnd: 0x100c0c, key: 0xcca888, keyI: 0.2, moonI: 0.7, hemiI: 0.85, rim: 12, night: 0.7 },
+      { p: 1.00, top: 0x1c2c6a, mid: 0xee7a48, horizon: 0xff8a42, ground: 0x4a2316, fog: 0xff8a52, hemiSky: 0xffc4a0, hemiGnd: 0x3a2214, key: 0xffb078, keyI: 3.4, moonI: 0, hemiI: 1.7, rim: 18, night: 0.08 }
+    ];
+
+    const mixA = new THREE.Color();
+    const mixB = new THREE.Color();
+    const midColorTarget = skyMat.uniforms.midColor.value;
+
+    function sampleSky(phase) {
+      let i = 0;
+      while (i < SKY_STOPS.length - 1 && SKY_STOPS[i + 1].p < phase) i++;
+      const a = SKY_STOPS[i];
+      const b = SKY_STOPS[i + 1];
+      const t = THREE.MathUtils.smoothstep((phase - a.p) / ((b.p - a.p) || 1), 0, 1);
+      const num = (key) => a[key] + (b[key] - a[key]) * t;
+      const col = (key, target) => target.set(a[key]).lerp(mixB.set(b[key]), t);
+      return {
+        top: col("top", skyMat.uniforms.topColor.value),
+        mid: col("mid", midColorTarget),
+        horizon: col("horizon", skyMat.uniforms.horizonColor.value),
+        ground: col("ground", skyMat.uniforms.groundColor.value),
+        fog: col("fog", mixA),
+        hemiSky: a.hemiSky,
+        hemiGnd: a.hemiGnd,
+        hemiSkyB: b.hemiSky,
+        hemiGndB: b.hemiGnd,
+        key: a.key,
+        keyB: b.key,
+        t,
+        keyI: num("keyI"),
+        moonI: num("moonI"),
+        hemiI: num("hemiI"),
+        rim: num("rim"),
+        night: num("night")
+      };
+    }
+
+    function placeOnSkyArc(object, theta) {
+      const elev = Math.max(0, Math.sin(theta));
+      object.position.set(
+        Math.cos(theta) * 32,
+        3.4 + elev * 22,
+        -20 - elev * 10
+      );
+    }
+
+    function updateDayNight(elapsed) {
+      const phase = (elapsed / DAY_SECONDS + CYCLE_START) % 1;
+      const sunTheta = phase * Math.PI * 2;
+      const moonTheta = sunTheta + Math.PI;
+      const skyNow = sampleSky(phase);
+
+      placeOnSkyArc(sun, sunTheta);
+      placeOnSkyArc(moon, moonTheta);
+
+      const sunUp = Math.sin(sunTheta);
+      const moonUp = Math.sin(moonTheta);
+      sun.visible = sunUp > -0.06;
+      moon.visible = moonUp > -0.04;
+
+      const elev = THREE.MathUtils.clamp(sunUp, 0, 1);
+      const moonElev = THREE.MathUtils.clamp(moonUp, 0, 1);
+      const horizon = 1 - elev;
+      sun.userData.bloom.scale.setScalar(14 + horizon * 8);
+      sun.userData.corona.scale.setScalar(7.4 + horizon * 3.6);
+      sun.userData.disc.scale.setScalar(2.9 + horizon * 0.55);
+      sun.userData.bloom.material.opacity = 0.22 + elev * 0.28 + horizon * 0.16;
+      sun.userData.corona.material.opacity = 0.5 + elev * 0.35;
+      sun.userData.disc.material.color.setRGB(1, 0.72 + elev * 0.26, 0.38 + elev * 0.52);
+
+      moon.userData.halo.material.opacity = 0.28 + moonElev * 0.35;
+      moon.userData.halo.scale.setScalar(9.2 + moonElev * 2.8);
+      moon.rotation.y = elapsed * 0.03;
+
+      const sunDir = skyMat.uniforms.sunDir.value.copy(sun.position).normalize();
+      skyMat.uniforms.moonDir.value.copy(moon.position).normalize();
+      skyMat.uniforms.sunGlow.value = THREE.MathUtils.clamp(sunUp * 1.6 + 0.08, 0, 1);
+      skyMat.uniforms.moonGlow.value = THREE.MathUtils.clamp(moonUp * 1.5, 0, 1);
+      skyMat.uniforms.night.value = skyNow.night;
+      moon.userData.mat.uniforms.sunDir.value.copy(sunDir);
+
+      key.position.copy(sun.position);
+      moonLight.position.copy(moon.position);
+      key.color.set(skyNow.key).lerp(mixB.set(skyNow.keyB), skyNow.t);
+      key.intensity = skyNow.keyI * Math.max(0, sunUp + 0.04);
+      moonLight.intensity = skyNow.moonI * Math.max(0, moonUp);
+      hemi.color.set(skyNow.hemiSky).lerp(mixB.set(skyNow.hemiSkyB), skyNow.t);
+      hemi.groundColor.set(skyNow.hemiGnd).lerp(mixB.set(skyNow.hemiGndB), skyNow.t);
+      hemi.intensity = skyNow.hemiI;
+      rim.intensity = skyNow.rim;
+      rim.color.set(sunUp > 0.05 ? 0xff6a3a : 0x6a88ff);
+      rim.position.set(sun.position.x * 0.28, 2.2, -4);
+
+      scene.fog.color.copy(skyNow.fog);
+      scene.fog.density = 0.007 + skyNow.night * 0.012;
+
+      stars.material.opacity = skyNow.night * 0.92;
+      stars.rotation.y = elapsed * 0.0035;
+
+      lightDots.forEach((dot) => {
+        dot.material.opacity = dot.userData.baseOpacity * (0.12 + skyNow.night * 0.9);
+      });
+      laneMat.emissiveIntensity = 0.18 + skyNow.night * 0.5;
+
+      const head = auto.userData.headLight;
+      const headMesh = auto.userData.headlightMesh;
+      if (head) head.intensity = 18 + skyNow.night * 34;
+      if (headMesh) headMesh.material.emissiveIntensity = 1.4 + skyNow.night * 3.2;
+
+      renderer.setClearColor(skyNow.top, 1);
+    }
+
+    const greenMat = new THREE.MeshStandardMaterial({ color: 0x0f5a3c, roughness: .56, metalness: .06 });
+    const greenDark = new THREE.MeshStandardMaterial({ color: 0x0a3828, roughness: .62 });
+    const yellowMat = new THREE.MeshStandardMaterial({ color: 0xffcc22, roughness: .46, metalness: .04 });
+    const yellowDark = new THREE.MeshStandardMaterial({ color: 0xd99300, roughness: .58 });
+    const blackMat = new THREE.MeshStandardMaterial({ color: 0x151817, roughness: .78 });
+    const chromeMat = new THREE.MeshStandardMaterial({ color: 0xc5c9c6, roughness: .22, metalness: .75 });
+    const glassMat = new THREE.MeshPhysicalMaterial({
+      color: 0x183d3d,
+      roughness: .12,
+      metalness: .05,
+      transmission: .34,
+      thickness: .5,
+      transparent: true,
+      opacity: .78
+    });
+    const creamMat = new THREE.MeshStandardMaterial({ color: 0xfff0bf, roughness: .7 });
+    const redMat = new THREE.MeshStandardMaterial({ color: 0xe73b27, emissive: 0x591208, emissiveIntensity: 1.2 });
+
+    function box(w, h, d, mat, x = 0, y = 0, z = 0) {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+      m.position.set(x, y, z);
+      m.castShadow = true;
+      m.receiveShadow = true;
+      return m;
+    }
+
+    function cyl(r, depth, mat, x, y, z, rotZ = Math.PI / 2) {
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, depth, 24), mat);
+      m.rotation.z = rotZ;
+      m.position.set(x, y, z);
+      m.castShadow = true;
+      m.receiveShadow = true;
+      return m;
+    }
+
+    function createAuto() {
+      const g = new THREE.Group();
+      g.name = "auto";
+
+      // Extra materials for a more faithful Indian auto-rickshaw.
+      const seatMat = new THREE.MeshStandardMaterial({ color: 0x6f341f, roughness: .82 });
+      const seatLightMat = new THREE.MeshStandardMaterial({ color: 0xa75a2c, roughness: .78 });
+      const canopyInnerMat = new THREE.MeshStandardMaterial({ color: 0x4a241d, roughness: .9 });
+      const orangeMat = new THREE.MeshStandardMaterial({
+        color: 0xff8a17,
+        emissive: 0x6a2400,
+        emissiveIntensity: .8,
+        roughness: .45
+      });
+      const plateMat = new THREE.MeshStandardMaterial({ color: 0xf5e9bd, roughness: .68 });
+      const darkInterior = new THREE.MeshStandardMaterial({ color: 0x161918, roughness: .95 });
+
+      function profileMesh(buildShape, depth, mat, z = -1.02, bevel = .035) {
+        const shape = new THREE.Shape();
+        buildShape(shape);
+        const geo = new THREE.ExtrudeGeometry(shape, {
+          depth,
+          bevelEnabled: true,
+          bevelSegments: 3,
+          steps: 1,
+          bevelSize: bevel,
+          bevelThickness: bevel,
+          curveSegments: 18
+        });
+        geo.translate(0, 0, z);
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        return mesh;
+      }
+
+      function wheelAt(x, y, z, radius = .50, width = .28) {
+        const wheelGroup = new THREE.Group();
+
+        const tyre = new THREE.Mesh(
+          new THREE.CylinderGeometry(radius, radius, width, 28),
+          blackMat
+        );
+        tyre.rotation.x = Math.PI / 2;
+        tyre.castShadow = true;
+        tyre.receiveShadow = true;
+
+        const rim = new THREE.Mesh(
+          new THREE.CylinderGeometry(radius * .47, radius * .47, width + .025, 28),
+          yellowDark
+        );
+        rim.rotation.x = Math.PI / 2;
+        rim.castShadow = true;
+
+        const hub = new THREE.Mesh(
+          new THREE.CylinderGeometry(radius * .18, radius * .18, width + .05, 24),
+          chromeMat
+        );
+        hub.rotation.x = Math.PI / 2;
+
+        wheelGroup.add(tyre, rim, hub);
+        wheelGroup.position.set(x, y, z);
+        return wheelGroup;
+      }
+
+      function halfFender(x, y, z, radius, mat) {
+        const fender = new THREE.Mesh(
+          new THREE.TorusGeometry(radius, .075, 10, 34, Math.PI),
+          mat
+        );
+        fender.position.set(x, y, z);
+        fender.castShadow = true;
+        return fender;
+      }
+
+      // ── Rounded green lower body ───────────────────────────────
+      const lowerBody = profileMesh((s) => {
+        s.moveTo(-2.25, .78);
+        s.lineTo(1.95, .78);
+        s.quadraticCurveTo(2.45, .80, 2.62, 1.10);
+        s.quadraticCurveTo(2.72, 1.34, 2.44, 1.58);
+        s.lineTo(-2.03, 1.61);
+        s.quadraticCurveTo(-2.28, 1.46, -2.25, .78);
+        s.closePath();
+      }, 2.10, greenMat, -1.05, .055);
+      g.add(lowerBody);
+
+      // Slightly darker skirt/chassis.
+      const skirt = profileMesh((s) => {
+        s.moveTo(-2.13, .73);
+        s.lineTo(2.12, .73);
+        s.lineTo(2.02, .92);
+        s.lineTo(-2.15, .94);
+        s.closePath();
+      }, 1.98, greenDark, -.99, .025);
+      g.add(skirt);
+
+      // Yellow belt line dividing the traditional green/yellow paint scheme.
+      const belt = box(4.26, .13, 2.12, yellowDark, -.04, 1.53, 0);
+      belt.rotation.z = .005;
+      g.add(belt);
+
+      // ── Curved yellow canopy / roof ────────────────────────────
+      const canopy = profileMesh((s) => {
+        s.moveTo(-2.08, 2.79);
+        s.quadraticCurveTo(-2.18, 3.23, -1.72, 3.48);
+        s.quadraticCurveTo(-.55, 3.70, .88, 3.47);
+        s.quadraticCurveTo(1.08, 3.43, 1.10, 3.28);
+        s.lineTo(1.02, 3.04);
+        s.quadraticCurveTo(-.45, 3.20, -1.76, 3.03);
+        s.quadraticCurveTo(-1.98, 2.98, -2.08, 2.79);
+        s.closePath();
+      }, 2.14, yellowMat, -1.07, .05);
+      g.add(canopy);
+
+      // Brown inner canopy visible through the open passenger side.
+      const innerCanopy = profileMesh((s) => {
+        s.moveTo(-1.80, 2.76);
+        s.quadraticCurveTo(-1.77, 3.10, -1.49, 3.22);
+        s.quadraticCurveTo(-.55, 3.37, .52, 3.21);
+        s.lineTo(.47, 2.93);
+        s.quadraticCurveTo(-.53, 3.02, -1.65, 2.90);
+        s.closePath();
+      }, .06, canopyInnerMat, 1.035, .018);
+      g.add(innerCanopy);
+
+      // Rounded yellow rear quarter pillar.
+      const rearQuarter = profileMesh((s) => {
+        s.moveTo(-2.13, 1.48);
+        s.lineTo(-1.55, 1.48);
+        s.lineTo(-1.48, 2.90);
+        s.quadraticCurveTo(-1.74, 3.10, -2.05, 2.88);
+        s.quadraticCurveTo(-2.18, 2.42, -2.13, 1.48);
+        s.closePath();
+      }, 2.08, yellowMat, -1.04, .045);
+      g.add(rearQuarter);
+
+      // ── Driver cab upper shell ─────────────────────────────────
+      const cabShell = profileMesh((s) => {
+        s.moveTo(.43, 1.50);
+        s.lineTo(2.08, 1.50);
+        s.quadraticCurveTo(2.30, 1.60, 2.28, 1.92);
+        s.lineTo(2.02, 2.78);
+        s.quadraticCurveTo(1.88, 3.18, 1.44, 3.27);
+        s.lineTo(.78, 3.26);
+        s.lineTo(.49, 2.94);
+        s.closePath();
+      }, 2.04, yellowMat, -1.02, .045);
+      g.add(cabShell);
+
+      // Green lower front nose with a rounded profile.
+      const nose = profileMesh((s) => {
+        s.moveTo(1.10, .86);
+        s.lineTo(2.22, .86);
+        s.quadraticCurveTo(2.70, .91, 2.72, 1.30);
+        s.quadraticCurveTo(2.70, 1.58, 2.37, 1.69);
+        s.lineTo(1.02, 1.66);
+        s.quadraticCurveTo(.96, 1.20, 1.10, .86);
+        s.closePath();
+      }, 1.95, greenMat, -.975, .055);
+      g.add(nose);
+
+      // Small brown sun visor above windshield.
+      const visor = box(.78, .13, 2.07, canopyInnerMat, 1.60, 3.22, 0);
+      visor.rotation.z = -.05;
+      g.add(visor);
+
+      // ── Windshield and side glass ──────────────────────────────
+      const windshield = box(.075, 1.05, 1.52, glassMat, 1.93, 2.52, 0);
+      windshield.rotation.z = -.20;
+      g.add(windshield);
+
+      // Center divider on windshield.
+      const windshieldDivider = box(.085, 1.01, .045, blackMat, 1.935, 2.51, 0);
+      windshieldDivider.rotation.z = -.20;
+      g.add(windshieldDivider);
+
+      // Visible side window, behind the driver's shoulder.
+      const sideWindow = box(.82, .92, .045, glassMat, .84, 2.52, 1.045);
+      sideWindow.rotation.z = -.03;
+      g.add(sideWindow);
+
+      // Black A/B pillars framing the glass and opening.
+      const aPillar = box(.11, 1.22, .09, blackMat, 1.28, 2.52, 1.07);
+      aPillar.rotation.z = -.11;
+      g.add(aPillar);
+      g.add(box(.105, 1.32, .09, blackMat, .39, 2.35, 1.07));
+
+      // ── Open passenger compartment ─────────────────────────────
+      // Dark recess gives the opening real depth instead of looking painted on.
+      g.add(box(1.62, 1.31, .065, darkInterior, -.57, 2.18, 1.075));
+
+      // Rear bench seat and backrest.
+      const rearSeat = box(.96, .32, 1.55, seatLightMat, -1.18, 1.67, .03);
+      rearSeat.rotation.z = -.02;
+      g.add(rearSeat);
+
+      const rearBack = box(.33, 1.08, 1.58, seatMat, -1.54, 2.14, .03);
+      rearBack.rotation.z = -.08;
+      g.add(rearBack);
+
+      // Driver seat, visible from the open side.
+      const driverSeat = box(.55, .28, .70, seatLightMat, .55, 1.66, .43);
+      driverSeat.rotation.z = -.03;
+      g.add(driverSeat);
+      const driverBack = box(.24, .84, .72, seatMat, .33, 2.03, .43);
+      driverBack.rotation.z = -.10;
+      g.add(driverBack);
+
+      // Floorboard.
+      g.add(box(1.83, .10, 1.85, greenDark, -.44, 1.48, 0));
+
+      // Passenger-side railings like the reference auto.
+      const railZ = 1.10;
+      g.add(box(1.50, .075, .075, chromeMat, -.55, 1.64, railZ));
+      g.add(box(1.50, .075, .075, chromeMat, -.55, 2.04, railZ));
+      [-1.25, -.75, -.25, .24].forEach((x) => {
+        g.add(box(.07, .86, .075, greenMat, x, 1.89, railZ));
+      });
+
+      // Yellow vertical trim bordering the passenger opening.
+      g.add(box(.13, 1.42, .10, yellowMat, -1.43, 2.16, 1.08));
+      g.add(box(.12, 1.38, .10, yellowMat, .36, 2.18, 1.08));
+
+      // Thin traditional yellow/green decorative bands on the rear side.
+      g.add(box(.70, .085, .075, yellowMat, -1.82, 1.98, 1.095));
+      g.add(box(.70, .085, .075, yellowMat, -1.82, 2.18, 1.095));
+
+      // ── Wheels and curved mudguards ────────────────────────────
+      const wheels = [];
+
+      const rearNear = wheelAt(-1.48, .59, 1.10, .51, .28);
+      const rearFar = wheelAt(-1.48, .59, -1.10, .51, .28);
+      const frontWheel = wheelAt(1.96, .55, .83, .49, .25);
+      wheels.push(rearNear, rearFar, frontWheel);
+      g.add(rearNear, rearFar, frontWheel);
+
+      // Green fenders over visible wheels.
+      const rearFender = halfFender(-1.48, .60, 1.15, .62, greenMat);
+      rearFender.rotation.z = 0;
+      g.add(rearFender);
+
+      const frontFender = halfFender(1.96, .57, .87, .60, greenMat);
+      frontFender.rotation.z = 0;
+      g.add(frontFender);
+
+      // Small chassis/axle details.
+      g.add(box(2.85, .095, .12, blackMat, -.23, .56, .70));
+      g.add(box(.60, .10, .10, chromeMat, 2.08, .68, .72));
+
+      // ── Front face details ─────────────────────────────────────
+      const headlight = new THREE.Mesh(
+        new THREE.SphereGeometry(.245, 24, 18),
+        new THREE.MeshStandardMaterial({
+          color: 0xfff4c6,
+          emissive: 0xffc658,
+          emissiveIntensity: 3.8,
+          roughness: .22
+        })
+      );
+      headlight.scale.set(.50, 1, 1);
+      headlight.position.set(2.72, 1.77, .16);
+      g.add(headlight);
+
+      const headLight = new THREE.SpotLight(0xffd88a, 46, 18, .32, .82, 1.6);
+      headLight.position.set(2.66, 1.80, .15);
+      headLight.target.position.set(11, .25, .12);
+      g.add(headLight, headLight.target);
+
+      // Front indicators and central red badge.
+      const indicatorNear = box(.075, .24, .38, orangeMat, 2.57, 1.48, .66);
+      const indicatorFar = box(.075, .24, .38, orangeMat, 2.57, 1.48, -.66);
+      g.add(indicatorNear, indicatorFar);
+
+      const badge = new THREE.Mesh(new THREE.SphereGeometry(.07, 14, 10), redMat);
+      badge.scale.x = .45;
+      badge.position.set(2.50, 2.03, .02);
+      g.add(badge);
+
+      // Number plate projecting from the nose.
+      const plate = box(.10, .25, .62, plateMat, 2.83, 1.08, .02);
+      g.add(plate);
+
+      // Tail lights.
+      g.add(box(.07, .24, .22, redMat, -2.27, 1.14, .72));
+      g.add(box(.07, .24, .22, redMat, -2.27, 1.14, -.72));
+
+      // Side mirror on the visible side + a smaller far-side hint.
+      const mirrorArm = box(.53, .035, .035, chromeMat, 1.83, 2.68, 1.12);
+      mirrorArm.rotation.y = -.24;
+      g.add(mirrorArm);
+      const mirror = box(.10, .30, .24, blackMat, 1.98, 2.76, 1.38);
+      mirror.rotation.y = -.16;
+      g.add(mirror);
+
+      const farMirrorArm = box(.40, .03, .03, chromeMat, 1.84, 2.66, -1.10);
+      farMirrorArm.rotation.y = .20;
+      g.add(farMirrorArm);
+      g.add(box(.08, .25, .20, blackMat, 1.97, 2.72, -1.28));
+
+      // Handle bar silhouette visible through the windshield.
+      const handle = new THREE.Group();
+      handle.add(box(.66, .045, .045, blackMat, 0, 0, 0));
+      handle.add(box(.045, .42, .045, blackMat, 0, -.15, 0));
+      handle.position.set(1.12, 2.00, .23);
+      handle.rotation.z = -.15;
+      g.add(handle);
+
+      // Simple driver silhouette — enough to make the cabin feel occupied.
+      const driverTorso = new THREE.Mesh(
+        new THREE.CapsuleGeometry(.22, .58, 5, 10),
+        new THREE.MeshStandardMaterial({ color: 0x34433a, roughness: .9 })
+      );
+      driverTorso.position.set(.77, 2.06, .12);
+      driverTorso.rotation.z = -.08;
+      g.add(driverTorso);
+
+      const driverHead = new THREE.Mesh(
+        new THREE.SphereGeometry(.20, 18, 14),
+        new THREE.MeshStandardMaterial({ color: 0x9a653e, roughness: .92 })
+      );
+      driverHead.position.set(.79, 2.63, .12);
+      g.add(driverHead);
+
+      // A tiny hanging ornament / nimbu-mirchi style silhouette by the windshield.
+      const string = box(.018, .42, .018, blackMat, 1.38, 2.10, 1.01);
+      g.add(string);
+      const charm = new THREE.Mesh(
+        new THREE.SphereGeometry(.055, 10, 8),
+        new THREE.MeshStandardMaterial({ color: 0xa4c423, roughness: .75 })
+      );
+      charm.position.set(1.38, 1.89, 1.01);
+      g.add(charm);
+
+      g.userData.wheels = wheels;
+      g.userData.headLight = headLight;
+      g.userData.headlightMesh = headlight;
+
+      // More side-on than the old blocky version, but with enough front
+      // perspective to show the windshield, headlight and mirror.
+      g.position.set(-.25, -.10, .04);
+      g.rotation.y = -.13;
+      g.scale.setScalar(1.03);
+
+      return g;
+    }
+
+    const auto = createAuto();
+    scene.add(auto);
+
+    /* Road */
+    const road = new THREE.Mesh(
+      new THREE.PlaneGeometry(140, 90),
+      new THREE.MeshStandardMaterial({ color: 0x171c1a, roughness: 1 })
+    );
+    road.rotation.x = -Math.PI / 2;
+    road.position.y = 0;
+    road.receiveShadow = true;
+    scene.add(road);
+
+    // Road borders
+    const borderMat = new THREE.MeshStandardMaterial({ color: 0x7d6933, roughness: 1 });
+    [-4.5, 4.5].forEach(z => {
+      const border = box(80, .08, .18, borderMat, 0, .045, z);
+      scene.add(border);
+    });
+
+    // Moving lane dashes
+    const laneMarkers = [];
+    const laneMat = new THREE.MeshStandardMaterial({ color: 0xf5d75f, emissive: 0x6c5412, emissiveIntensity: .55 });
+    for (let i = 0; i < 26; i++) {
+      const marker = box(1.4, .025, .11, laneMat, (i - 13) * 3.15, .05, 0);
+      marker.receiveShadow = true;
+      laneMarkers.push(marker);
+      scene.add(marker);
+    }
+
+    // roadside posts for speed feel
+    const postMat = new THREE.MeshStandardMaterial({ color: 0xd6c999, roughness: .8 });
+    const posts = [];
+    for (let side of [-1, 1]) {
+      for (let i = 0; i < 18; i++) {
+        const p = box(.12, 1.05, .12, postMat, (i - 9) * 4.5, .53, side * 4.0);
+        posts.push(p);
+        scene.add(p);
+      }
+    }
+
+    // distant glow cards / "city lights"
+    const lightDots = [];
+    for (let i = 0; i < 24; i++) {
+      const m = new THREE.Mesh(
+        new THREE.SphereGeometry(.035 + Math.random() * .055, 8, 8),
+        new THREE.MeshBasicMaterial({ color: Math.random() > .5 ? 0xffd16a : 0xff7048 })
+      );
+      m.position.set((Math.random() - .5) * 30, 1 + Math.random() * 5, -7 - Math.random() * 8);
+      m.material.transparent = true;
+      m.material.opacity = .38 + Math.random() * .55;
+      m.userData.baseOpacity = m.material.opacity;
+      lightDots.push(m);
+      scene.add(m);
+    }
+
+    let hornKick = 0;
+    window.addEventListener("auto-honk", () => { hornKick = 1; });
+
+    const clock = new THREE.Clock();
+    let visualSpeed = 1;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+
+      // Ride motion
+      auto.position.y = -.15 + Math.sin(t * 4.1) * .035;
+      auto.rotation.z = Math.sin(t * 2.15) * .007;
+      auto.rotation.x = Math.sin(t * 3.05) * .005;
+
+      // subtle steering / forward motion
+      auto.rotation.y = -.07 + Math.sin(t * .62) * .015;
+
+      // horn recoil
+      if (hornKick > .001) {
+        hornKick *= .82;
+        auto.position.x = -.35 - hornKick * .09;
+        auto.rotation.z += hornKick * .018;
+      } else {
+        auto.position.x = -.35;
+      }
+
+      // wheel rotation
+      auto.userData.wheels.forEach((wheel) => {
+        wheel.rotation.z -= .095 * visualSpeed;
+      });
+
+      // Road scroll
+      laneMarkers.forEach(marker => {
+        marker.position.x -= .24 * visualSpeed;
+        if (marker.position.x < -41) marker.position.x += 82;
+      });
+
+      posts.forEach(post => {
+        post.position.x -= .30 * visualSpeed;
+        if (post.position.x < -41) post.position.x += 82;
+      });
+
+      // speed meter gentle drift
+      const kmh = Math.round(37 + Math.sin(t * .7) * 4 + Math.sin(t * 1.8) * 1.5);
+      document.getElementById("speed").textContent = kmh;
+      visualSpeed = .92 + (kmh - 32) / 28;
+
+      // camera breathing
+      camera.position.y = camBaseY + Math.sin(t * .45) * .04;
+      camera.lookAt(.10, 1.52, 0);
+
+      updateDayNight(t);
+
+      renderer.render(scene, camera);
+    }
+
+    let camBaseY = 4.15;
+
+    function resize() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+
+      if (w < 650) {
+        camera.fov = 58;
+        camera.position.set(0, 4.35, 15.6);
+        camBaseY = 4.35;
+        auto.scale.setScalar(.84);
+        auto.position.z = .25;
+      } else if (w < 900) {
+        camera.fov = 50;
+        camera.position.set(0, 4.22, 14.9);
+        camBaseY = 4.22;
+        auto.scale.setScalar(.94);
+      } else {
+        camera.fov = 44;
+        camera.position.set(0, 4.12, 14.3);
+        camBaseY = 4.12;
+        auto.scale.setScalar(1.03);
+      }
+
+      camera.updateProjectionMatrix();
+    }
+
+    window.addEventListener("resize", resize);
+    resize();
+    animate();
+  </script>
+</body>
+</html>
